@@ -1,0 +1,1728 @@
+ARM GAS  C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 1
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"main.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.deployDirtbrake,"ax",%progbits
+  20              		.align	1
+  21              		.global	deployDirtbrake
+  22              		.syntax unified
+  23              		.thumb
+  24              		.thumb_func
+  26              	deployDirtbrake:
+  27              	.LFB135:
+  28              		.file 1 "Core/Src/main.c"
+   1:Core/Src/main.c **** /* USER CODE BEGIN Header */
+   2:Core/Src/main.c **** /**
+   3:Core/Src/main.c ****   ******************************************************************************
+   4:Core/Src/main.c ****   * @file           : main.c
+   5:Core/Src/main.c ****   * @brief          : Main program body
+   6:Core/Src/main.c ****   ******************************************************************************
+   7:Core/Src/main.c ****   * @attention
+   8:Core/Src/main.c ****   *
+   9:Core/Src/main.c ****   * Copyright (c) 2023 STMicroelectronics.
+  10:Core/Src/main.c ****   * All rights reserved.
+  11:Core/Src/main.c ****   *
+  12:Core/Src/main.c ****   * This software is licensed under terms that can be found in the LICENSE file
+  13:Core/Src/main.c ****   * in the root directory of this software component.
+  14:Core/Src/main.c ****   * If no LICENSE file comes with this software, it is provided AS-IS.
+  15:Core/Src/main.c ****   *
+  16:Core/Src/main.c ****   ******************************************************************************
+  17:Core/Src/main.c ****   */
+  18:Core/Src/main.c **** /* USER CODE END Header */
+  19:Core/Src/main.c **** /* Includes ------------------------------------------------------------------*/
+  20:Core/Src/main.c **** #include "main.h"
+  21:Core/Src/main.c **** #include "i2c.h"
+  22:Core/Src/main.c **** #include "usart.h"
+  23:Core/Src/main.c **** #include "tim.h"
+  24:Core/Src/main.c **** #include "gpio.h"
+  25:Core/Src/main.c **** 
+  26:Core/Src/main.c **** /* Private includes ----------------------------------------------------------*/
+  27:Core/Src/main.c **** /* USER CODE BEGIN Includes */
+  28:Core/Src/main.c **** #include "BNO055.h"
+  29:Core/Src/main.c **** #include "motor.h"
+  30:Core/Src/main.c **** /* USER CODE END Includes */
+ARM GAS  C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s 			page 2
+
+
+  31:Core/Src/main.c **** 
+  32:Core/Src/main.c **** /* Private typedef -----------------------------------------------------------*/
+  33:Core/Src/main.c **** /* USER CODE BEGIN PTD */
+  34:Core/Src/main.c **** 
+  35:Core/Src/main.c **** /* USER CODE END PTD */
+  36:Core/Src/main.c **** 
+  37:Core/Src/main.c **** /* Private define ------------------------------------------------------------*/
+  38:Core/Src/main.c **** /* USER CODE BEGIN PD */
+  39:Core/Src/main.c **** 
+  40:Core/Src/main.c **** /* USER CODE END PD */
+  41:Core/Src/main.c **** 
+  42:Core/Src/main.c **** /* Private macro -------------------------------------------------------------*/
+  43:Core/Src/main.c **** /* USER CODE BEGIN PM */
+  44:Core/Src/main.c **** 
+  45:Core/Src/main.c **** /* USER CODE END PM */
+  46:Core/Src/main.c **** 
+  47:Core/Src/main.c **** /* Private variables ---------------------------------------------------------*/
+  48:Core/Src/main.c **** 
+  49:Core/Src/main.c **** /* USER CODE BEGIN PV */
+  50:Core/Src/main.c **** 
+  51:Core/Src/main.c **** /* USER CODE END PV */
+  52:Core/Src/main.c **** 
+  53:Core/Src/main.c **** /* Private function prototypes -----------------------------------------------*/
+  54:Core/Src/main.c **** void SystemClock_Config(void);
+  55:Core/Src/main.c **** /* USER CODE BEGIN PFP */
+  56:Core/Src/main.c **** void deployDirtbrake(void);
+  57:Core/Src/main.c **** void bayOrientation(void);
+  58:Core/Src/main.c **** void armDeployment(void);
+  59:Core/Src/main.c **** void armRetraction(void);
+  60:Core/Src/main.c **** void retractDirtbrake(void);
+  61:Core/Src/main.c **** /* USER CODE END PFP */
+  62:Core/Src/main.c **** 
+  63:Core/Src/main.c **** /* Private user code ---------------------------------------------------------*/
+  64:Core/Src/main.c **** /* USER CODE BEGIN 0 */
+  65:Core/Src/main.c **** BNO055_Axis_Vec_t eulerVec;
+  66:Core/Src/main.c **** BNO055_AXIS_CONFIG_t axisConfig;
+  67:Core/Src/main.c **** DCMotor_Config_t dcConfig;
+  68:Core/Src/main.c **** DCMotor_Instance_t bayMotor;
+  69:Core/Src/main.c **** DCMotor_Instance_t armMotor;
+  70:Core/Src/main.c **** Actuator_Config_t actConfig;
+  71:Core/Src/main.c **** Actuator_Instance_t actInstance;
+  72:Core/Src/main.c **** 
+  73:Core/Src/main.c **** typedef struct{
+  74:Core/Src/main.c **** 
+  75:Core/Src/main.c ****   void (*taskFunc)();
+  76:Core/Src/main.c **** 
+  77:Core/Src/main.c **** } state_task_t;
+  78:Core/Src/main.c **** 
+  79:Core/Src/main.c **** typedef enum{
+  80:Core/Src/main.c ****   ARM_DEPLOYING,
+  81:Core/Src/main.c ****   ARM_DONE_DEPLOYING,
+  82:Core/Src/main.c ****   ARM_RETRACTING,
+  83:Core/Src/main.c ****   ARM_DONE_RETRACTING
+  84:Core/Src/main.c **** } Arm_State_t;
+  85:Core/Src/main.c **** 
+  86:Core/Src/main.c **** Arm_State_t armState;
+  87:Core/Src/main.c **** 
+ARM GAS  C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s 			page 3
+
+
+  88:Core/Src/main.c **** /* USER CODE END 0 */
+  89:Core/Src/main.c **** 
+  90:Core/Src/main.c **** /**
+  91:Core/Src/main.c ****   * @brief  The application entry point.
+  92:Core/Src/main.c ****   * @retval int
+  93:Core/Src/main.c ****   */
+  94:Core/Src/main.c **** int main(void)
+  95:Core/Src/main.c **** {
+  96:Core/Src/main.c ****   /* USER CODE BEGIN 1 */
+  97:Core/Src/main.c **** 
+  98:Core/Src/main.c ****   /* USER CODE END 1 */
+  99:Core/Src/main.c **** 
+ 100:Core/Src/main.c ****   /* MCU Configuration--------------------------------------------------------*/
+ 101:Core/Src/main.c **** 
+ 102:Core/Src/main.c ****   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+ 103:Core/Src/main.c ****   HAL_Init();
+ 104:Core/Src/main.c **** 
+ 105:Core/Src/main.c ****   /* USER CODE BEGIN Init */
+ 106:Core/Src/main.c **** 
+ 107:Core/Src/main.c ****   /* USER CODE END Init */
+ 108:Core/Src/main.c **** 
+ 109:Core/Src/main.c ****   /* Configure the system clock */
+ 110:Core/Src/main.c ****   SystemClock_Config();
+ 111:Core/Src/main.c **** 
+ 112:Core/Src/main.c ****   /* USER CODE BEGIN SysInit */
+ 113:Core/Src/main.c **** 
+ 114:Core/Src/main.c ****   /* USER CODE END SysInit */
+ 115:Core/Src/main.c **** 
+ 116:Core/Src/main.c ****   /* Initialize all configured peripherals */
+ 117:Core/Src/main.c ****   MX_GPIO_Init();
+ 118:Core/Src/main.c ****   MX_I2C1_Init();
+ 119:Core/Src/main.c ****   MX_LPUART1_UART_Init();
+ 120:Core/Src/main.c ****   MX_TIM2_Init();
+ 121:Core/Src/main.c ****   MX_TIM3_Init();
+ 122:Core/Src/main.c ****   /* USER CODE BEGIN 2 */
+ 123:Core/Src/main.c **** 
+ 124:Core/Src/main.c ****   //Actuator Config
+ 125:Core/Src/main.c ****   actConfig.Min_Pulse           = 900;
+ 126:Core/Src/main.c ****   actConfig.Max_Pulse           = 2100;
+ 127:Core/Src/main.c ****   actConfig.Min_Length          = 0;
+ 128:Core/Src/main.c ****   actConfig.Max_Length          = 27;
+ 129:Core/Src/main.c ****   actConfig.Desired_Min_Length  = 0;
+ 130:Core/Src/main.c ****   actConfig.Desired_Max_Length  = 16;
+ 131:Core/Src/main.c **** 
+ 132:Core/Src/main.c ****   actInstance.Act_Timer = &htim3;
+ 133:Core/Src/main.c ****   actInstance.Channel   = TIM_CHANNEL_1;
+ 134:Core/Src/main.c ****   actInstance.config    = &actConfig;
+ 135:Core/Src/main.c **** 
+ 136:Core/Src/main.c ****   if(Actuator_Init(&actInstance) != ACTUATOR_OK){
+ 137:Core/Src/main.c ****     HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+ 138:Core/Src/main.c ****     while(1);
+ 139:Core/Src/main.c ****   }
+ 140:Core/Src/main.c **** 
+ 141:Core/Src/main.c ****   //DC Motor Initialization
+ 142:Core/Src/main.c ****   dcConfig.Min_Speed = 0;
+ 143:Core/Src/main.c ****   dcConfig.Max_Speed = 100;
+ 144:Core/Src/main.c **** 
+ARM GAS  C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s 			page 4
+
+
+ 145:Core/Src/main.c ****   bayMotor.DC_Timer    = &htim2;
+ 146:Core/Src/main.c ****   bayMotor.IN1_Channel = TIM_CHANNEL_1;
+ 147:Core/Src/main.c ****   bayMotor.IN2_Channel = TIM_CHANNEL_2;
+ 148:Core/Src/main.c ****   bayMotor.config      = &dcConfig;
+ 149:Core/Src/main.c **** 
+ 150:Core/Src/main.c ****   if(DCMotor_Init(&bayMotor) != DC_MOTOR_OK){
+ 151:Core/Src/main.c ****     HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+ 152:Core/Src/main.c ****     while(1);
+ 153:Core/Src/main.c ****   }
+ 154:Core/Src/main.c **** 
+ 155:Core/Src/main.c ****   // Drive_DCMotor(&bayMotor, 70, CLOCKWISE);
+ 156:Core/Src/main.c **** 
+ 157:Core/Src/main.c ****   armMotor.DC_Timer    = &htim2;
+ 158:Core/Src/main.c ****   armMotor.IN1_Channel = TIM_CHANNEL_3;
+ 159:Core/Src/main.c ****   armMotor.IN2_Channel = TIM_CHANNEL_4;
+ 160:Core/Src/main.c ****   armMotor.config      = &dcConfig;
+ 161:Core/Src/main.c **** 
+ 162:Core/Src/main.c ****   if(DCMotor_Init(&armMotor) != DC_MOTOR_OK){
+ 163:Core/Src/main.c ****     HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+ 164:Core/Src/main.c ****     while(1);
+ 165:Core/Src/main.c ****   }
+ 166:Core/Src/main.c **** 
+ 167:Core/Src/main.c ****   // Drive_DCMotor(&armMotor, 70, CLOCKWISE);
+ 168:Core/Src/main.c **** 
+ 169:Core/Src/main.c ****   //BNO055 Initialization
+ 170:Core/Src/main.c ****   HAL_Delay(700);
+ 171:Core/Src/main.c ****   BNO055_I2C_Mount(&hi2c1);
+ 172:Core/Src/main.c ****   if(BNO055_Init() != BNO055_SUCCESS){
+ 173:Core/Src/main.c ****     HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+ 174:Core/Src/main.c ****     while(1);
+ 175:Core/Src/main.c ****   }
+ 176:Core/Src/main.c ****   BNO055_Set_OP_Mode(NDOF);
+ 177:Core/Src/main.c **** 
+ 178:Core/Src/main.c ****   state_task_t task[5];
+ 179:Core/Src/main.c **** 
+ 180:Core/Src/main.c ****   task[0].taskFunc = deployDirtbrake;
+ 181:Core/Src/main.c ****   task[1].taskFunc = bayOrientation;
+ 182:Core/Src/main.c ****   task[2].taskFunc = armDeployment;
+ 183:Core/Src/main.c ****   task[3].taskFunc = armRetraction;
+ 184:Core/Src/main.c ****   task[4].taskFunc = retractDirtbrake;
+ 185:Core/Src/main.c **** 
+ 186:Core/Src/main.c ****   /* USER CODE END 2 */
+ 187:Core/Src/main.c **** 
+ 188:Core/Src/main.c ****   /* Infinite loop */
+ 189:Core/Src/main.c ****   /* USER CODE BEGIN WHILE */
+ 190:Core/Src/main.c ****   while (1)
+ 191:Core/Src/main.c ****   {
+ 192:Core/Src/main.c **** 
+ 193:Core/Src/main.c ****     task[0].taskFunc();
+ 194:Core/Src/main.c ****     task[1].taskFunc();
+ 195:Core/Src/main.c ****     task[2].taskFunc();
+ 196:Core/Src/main.c ****     task[3].taskFunc();
+ 197:Core/Src/main.c ****     task[4].taskFunc();
+ 198:Core/Src/main.c ****     /* USER CODE END WHILE */
+ 199:Core/Src/main.c **** 
+ 200:Core/Src/main.c ****     /* USER CODE BEGIN 3 */
+ 201:Core/Src/main.c ****   }
+ARM GAS  C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s 			page 5
+
+
+ 202:Core/Src/main.c ****   /* USER CODE END 3 */
+ 203:Core/Src/main.c **** }
+ 204:Core/Src/main.c **** 
+ 205:Core/Src/main.c **** /**
+ 206:Core/Src/main.c ****   * @brief System Clock Configuration
+ 207:Core/Src/main.c ****   * @retval None
+ 208:Core/Src/main.c ****   */
+ 209:Core/Src/main.c **** void SystemClock_Config(void)
+ 210:Core/Src/main.c **** {
+ 211:Core/Src/main.c ****   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+ 212:Core/Src/main.c ****   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+ 213:Core/Src/main.c **** 
+ 214:Core/Src/main.c ****   /** Configure the main internal regulator output voltage
+ 215:Core/Src/main.c ****   */
+ 216:Core/Src/main.c ****   HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1_BOOST);
+ 217:Core/Src/main.c **** 
+ 218:Core/Src/main.c ****   /** Initializes the RCC Oscillators according to the specified parameters
+ 219:Core/Src/main.c ****   * in the RCC_OscInitTypeDef structure.
+ 220:Core/Src/main.c ****   */
+ 221:Core/Src/main.c ****   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+ 222:Core/Src/main.c ****   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+ 223:Core/Src/main.c ****   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+ 224:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+ 225:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+ 226:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV4;
+ 227:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLN = 85;
+ 228:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+ 229:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
+ 230:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
+ 231:Core/Src/main.c ****   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+ 232:Core/Src/main.c ****   {
+ 233:Core/Src/main.c ****     Error_Handler();
+ 234:Core/Src/main.c ****   }
+ 235:Core/Src/main.c **** 
+ 236:Core/Src/main.c ****   /** Initializes the CPU, AHB and APB buses clocks
+ 237:Core/Src/main.c ****   */
+ 238:Core/Src/main.c ****   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+ 239:Core/Src/main.c ****                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+ 240:Core/Src/main.c ****   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+ 241:Core/Src/main.c ****   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+ 242:Core/Src/main.c ****   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+ 243:Core/Src/main.c ****   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+ 244:Core/Src/main.c **** 
+ 245:Core/Src/main.c ****   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK)
+ 246:Core/Src/main.c ****   {
+ 247:Core/Src/main.c ****     Error_Handler();
+ 248:Core/Src/main.c ****   }
+ 249:Core/Src/main.c **** }
+ 250:Core/Src/main.c **** 
+ 251:Core/Src/main.c **** /* USER CODE BEGIN 4 */
+ 252:Core/Src/main.c **** void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
+ 253:Core/Src/main.c ****   if(armState == ARM_DEPLOYING)
+ 254:Core/Src/main.c ****     armState = ARM_DONE_DEPLOYING;
+ 255:Core/Src/main.c ****   else if(armState == ARM_RETRACTING)
+ 256:Core/Src/main.c ****     armState = ARM_DONE_RETRACTING;
+ 257:Core/Src/main.c **** }
+ 258:Core/Src/main.c **** 
+ARM GAS  C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s 			page 6
+
+
+ 259:Core/Src/main.c **** void deployDirtbrake(void){
+  29              		.loc 1 259 27 view -0
+  30              		.cfi_startproc
+  31              		@ args = 0, pretend = 0, frame = 0
+  32              		@ frame_needed = 0, uses_anonymous_args = 0
+  33 0000 08B5     		push	{r3, lr}
+  34              		.cfi_def_cfa_offset 8
+  35              		.cfi_offset 3, -8
+  36              		.cfi_offset 14, -4
+ 260:Core/Src/main.c ****   HAL_GPIO_WritePin(DIRTBRAKE_LED_GPIO_Port, DIRTBRAKE_LED_Pin, GPIO_PIN_SET);
+  37              		.loc 1 260 3 view .LVU1
+  38 0002 0122     		movs	r2, #1
+  39 0004 1146     		mov	r1, r2
+  40 0006 0648     		ldr	r0, .L3
+  41 0008 FFF7FEFF 		bl	HAL_GPIO_WritePin
+  42              	.LVL0:
+ 261:Core/Src/main.c ****   Drive_Actuator(&actInstance, 16);
+  43              		.loc 1 261 3 view .LVU2
+  44 000c 1021     		movs	r1, #16
+  45 000e 0548     		ldr	r0, .L3+4
+  46 0010 FFF7FEFF 		bl	Drive_Actuator
+  47              	.LVL1:
+ 262:Core/Src/main.c ****   HAL_Delay(5000);
+  48              		.loc 1 262 3 view .LVU3
+  49 0014 41F28830 		movw	r0, #5000
+  50 0018 FFF7FEFF 		bl	HAL_Delay
+  51              	.LVL2:
+ 263:Core/Src/main.c **** }
+  52              		.loc 1 263 1 is_stmt 0 view .LVU4
+  53 001c 08BD     		pop	{r3, pc}
+  54              	.L4:
+  55 001e 00BF     		.align	2
+  56              	.L3:
+  57 0020 00040048 		.word	1207960576
+  58 0024 00000000 		.word	.LANCHOR0
+  59              		.cfi_endproc
+  60              	.LFE135:
+  62              		.section	.text.retractDirtbrake,"ax",%progbits
+  63              		.align	1
+  64              		.global	retractDirtbrake
+  65              		.syntax unified
+  66              		.thumb
+  67              		.thumb_func
+  69              	retractDirtbrake:
+  70              	.LFB139:
+ 264:Core/Src/main.c **** 
+ 265:Core/Src/main.c **** void bayOrientation(void){
+ 266:Core/Src/main.c ****   HAL_GPIO_WritePin(BAY_LED_GPIO_Port, BAY_LED_Pin, GPIO_PIN_SET);
+ 267:Core/Src/main.c ****   Drive_DCMotor(&bayMotor, 70, CLOCKWISE);
+ 268:Core/Src/main.c ****   
+ 269:Core/Src/main.c ****   for(uint8_t i = 0; i < 100; i++){
+ 270:Core/Src/main.c ****     BNO055_Get_Euler_Vec(&eulerVec);
+ 271:Core/Src/main.c ****     HAL_Delay(10);
+ 272:Core/Src/main.c ****   }
+ 273:Core/Src/main.c **** 
+ 274:Core/Src/main.c ****   if(eulerVec.y < 0){
+ 275:Core/Src/main.c ****     while(eulerVec.y <= 0){
+ARM GAS  C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s 			page 7
+
+
+ 276:Core/Src/main.c ****       BNO055_Get_Euler_Vec(&eulerVec);
+ 277:Core/Src/main.c ****       HAL_Delay(10);
+ 278:Core/Src/main.c ****     }
+ 279:Core/Src/main.c ****   }
+ 280:Core/Src/main.c ****   else if(eulerVec.y > 0){
+ 281:Core/Src/main.c ****     while(eulerVec.y >= 0){
+ 282:Core/Src/main.c ****       BNO055_Get_Euler_Vec(&eulerVec);
+ 283:Core/Src/main.c ****       HAL_Delay(10);
+ 284:Core/Src/main.c ****     }
+ 285:Core/Src/main.c ****   }
+ 286:Core/Src/main.c **** 
+ 287:Core/Src/main.c ****   Stop_DCMotor(&bayMotor);
+ 288:Core/Src/main.c **** }
+ 289:Core/Src/main.c **** 
+ 290:Core/Src/main.c **** void armDeployment(void){
+ 291:Core/Src/main.c ****   armState = ARM_DEPLOYING;
+ 292:Core/Src/main.c ****   Drive_DCMotor(&armMotor, 70, COUNTER_CLOCKWISE);
+ 293:Core/Src/main.c ****   while(armState == ARM_DEPLOYING);
+ 294:Core/Src/main.c ****   Stop_DCMotor(&armMotor);
+ 295:Core/Src/main.c **** }
+ 296:Core/Src/main.c **** 
+ 297:Core/Src/main.c **** void armRetraction(void){
+ 298:Core/Src/main.c ****   armState = ARM_RETRACTING;
+ 299:Core/Src/main.c ****   Drive_DCMotor(&armMotor, 70, CLOCKWISE);
+ 300:Core/Src/main.c ****   while(armState == ARM_RETRACTING);
+ 301:Core/Src/main.c ****   Stop_DCMotor(&armMotor);
+ 302:Core/Src/main.c **** }
+ 303:Core/Src/main.c **** 
+ 304:Core/Src/main.c **** void retractDirtbrake(void){
+  71              		.loc 1 304 28 is_stmt 1 view -0
+  72              		.cfi_startproc
+  73              		@ args = 0, pretend = 0, frame = 0
+  74              		@ frame_needed = 0, uses_anonymous_args = 0
+  75 0000 08B5     		push	{r3, lr}
+  76              		.cfi_def_cfa_offset 8
+  77              		.cfi_offset 3, -8
+  78              		.cfi_offset 14, -4
+ 305:Core/Src/main.c ****   Drive_Actuator(&actInstance, 0);
+  79              		.loc 1 305 3 view .LVU6
+  80 0002 0021     		movs	r1, #0
+  81 0004 0348     		ldr	r0, .L7
+  82 0006 FFF7FEFF 		bl	Drive_Actuator
+  83              	.LVL3:
+ 306:Core/Src/main.c ****   HAL_Delay(5000);
+  84              		.loc 1 306 3 view .LVU7
+  85 000a 41F28830 		movw	r0, #5000
+  86 000e FFF7FEFF 		bl	HAL_Delay
+  87              	.LVL4:
+ 307:Core/Src/main.c **** }
+  88              		.loc 1 307 1 is_stmt 0 view .LVU8
+  89 0012 08BD     		pop	{r3, pc}
+  90              	.L8:
+  91              		.align	2
+  92              	.L7:
+  93 0014 00000000 		.word	.LANCHOR0
+  94              		.cfi_endproc
+  95              	.LFE139:
+ARM GAS  C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s 			page 8
+
+
+  97              		.section	.text.bayOrientation,"ax",%progbits
+  98              		.align	1
+  99              		.global	bayOrientation
+ 100              		.syntax unified
+ 101              		.thumb
+ 102              		.thumb_func
+ 104              	bayOrientation:
+ 105              	.LFB136:
+ 265:Core/Src/main.c ****   HAL_GPIO_WritePin(BAY_LED_GPIO_Port, BAY_LED_Pin, GPIO_PIN_SET);
+ 106              		.loc 1 265 26 is_stmt 1 view -0
+ 107              		.cfi_startproc
+ 108              		@ args = 0, pretend = 0, frame = 0
+ 109              		@ frame_needed = 0, uses_anonymous_args = 0
+ 110 0000 10B5     		push	{r4, lr}
+ 111              		.cfi_def_cfa_offset 8
+ 112              		.cfi_offset 4, -8
+ 113              		.cfi_offset 14, -4
+ 266:Core/Src/main.c ****   Drive_DCMotor(&bayMotor, 70, CLOCKWISE);
+ 114              		.loc 1 266 3 view .LVU10
+ 115 0002 0122     		movs	r2, #1
+ 116 0004 0221     		movs	r1, #2
+ 117 0006 2148     		ldr	r0, .L20
+ 118 0008 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 119              	.LVL5:
+ 267:Core/Src/main.c ****   
+ 120              		.loc 1 267 3 view .LVU11
+ 121 000c 0022     		movs	r2, #0
+ 122 000e 4621     		movs	r1, #70
+ 123 0010 1F48     		ldr	r0, .L20+4
+ 124 0012 FFF7FEFF 		bl	Drive_DCMotor
+ 125              	.LVL6:
+ 269:Core/Src/main.c ****     BNO055_Get_Euler_Vec(&eulerVec);
+ 126              		.loc 1 269 3 view .LVU12
+ 127              	.LBB4:
+ 269:Core/Src/main.c ****     BNO055_Get_Euler_Vec(&eulerVec);
+ 128              		.loc 1 269 7 view .LVU13
+ 269:Core/Src/main.c ****     BNO055_Get_Euler_Vec(&eulerVec);
+ 129              		.loc 1 269 15 is_stmt 0 view .LVU14
+ 130 0016 0024     		movs	r4, #0
+ 269:Core/Src/main.c ****     BNO055_Get_Euler_Vec(&eulerVec);
+ 131              		.loc 1 269 3 view .LVU15
+ 132 0018 07E0     		b	.L10
+ 133              	.LVL7:
+ 134              	.L11:
+ 270:Core/Src/main.c ****     HAL_Delay(10);
+ 135              		.loc 1 270 5 is_stmt 1 discriminator 3 view .LVU16
+ 136 001a 1E48     		ldr	r0, .L20+8
+ 137 001c FFF7FEFF 		bl	BNO055_Get_Euler_Vec
+ 138              	.LVL8:
+ 271:Core/Src/main.c ****   }
+ 139              		.loc 1 271 5 discriminator 3 view .LVU17
+ 140 0020 0A20     		movs	r0, #10
+ 141 0022 FFF7FEFF 		bl	HAL_Delay
+ 142              	.LVL9:
+ 269:Core/Src/main.c ****     BNO055_Get_Euler_Vec(&eulerVec);
+ 143              		.loc 1 269 32 discriminator 3 view .LVU18
+ 144 0026 0134     		adds	r4, r4, #1
+ARM GAS  C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s 			page 9
+
+
+ 145              	.LVL10:
+ 269:Core/Src/main.c ****     BNO055_Get_Euler_Vec(&eulerVec);
+ 146              		.loc 1 269 32 is_stmt 0 discriminator 3 view .LVU19
+ 147 0028 E4B2     		uxtb	r4, r4
+ 148              	.LVL11:
+ 149              	.L10:
+ 269:Core/Src/main.c ****     BNO055_Get_Euler_Vec(&eulerVec);
+ 150              		.loc 1 269 24 is_stmt 1 discriminator 1 view .LVU20
+ 151 002a 632C     		cmp	r4, #99
+ 152 002c F5D9     		bls	.L11
+ 153              	.LBE4:
+ 274:Core/Src/main.c ****     while(eulerVec.y <= 0){
+ 154              		.loc 1 274 3 view .LVU21
+ 274:Core/Src/main.c ****     while(eulerVec.y <= 0){
+ 155              		.loc 1 274 14 is_stmt 0 view .LVU22
+ 156 002e 194B     		ldr	r3, .L20+8
+ 157 0030 D3ED017A 		vldr.32	s15, [r3, #4]
+ 274:Core/Src/main.c ****     while(eulerVec.y <= 0){
+ 158              		.loc 1 274 5 view .LVU23
+ 159 0034 F5EEC07A 		vcmpe.f32	s15, #0
+ 160 0038 F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+ 161 003c 0BD4     		bmi	.L12
+ 280:Core/Src/main.c ****     while(eulerVec.y >= 0){
+ 162              		.loc 1 280 8 is_stmt 1 view .LVU24
+ 280:Core/Src/main.c ****     while(eulerVec.y >= 0){
+ 163              		.loc 1 280 10 is_stmt 0 view .LVU25
+ 164 003e F5EEC07A 		vcmpe.f32	s15, #0
+ 165 0042 F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+ 166 0046 18DC     		bgt	.L16
+ 167 0048 0DE0     		b	.L15
+ 168              	.L14:
+ 276:Core/Src/main.c ****       HAL_Delay(10);
+ 169              		.loc 1 276 7 is_stmt 1 view .LVU26
+ 170 004a 1248     		ldr	r0, .L20+8
+ 171 004c FFF7FEFF 		bl	BNO055_Get_Euler_Vec
+ 172              	.LVL12:
+ 277:Core/Src/main.c ****     }
+ 173              		.loc 1 277 7 view .LVU27
+ 174 0050 0A20     		movs	r0, #10
+ 175 0052 FFF7FEFF 		bl	HAL_Delay
+ 176              	.LVL13:
+ 177              	.L12:
+ 275:Core/Src/main.c ****       BNO055_Get_Euler_Vec(&eulerVec);
+ 178              		.loc 1 275 22 view .LVU28
+ 275:Core/Src/main.c ****       BNO055_Get_Euler_Vec(&eulerVec);
+ 179              		.loc 1 275 19 is_stmt 0 view .LVU29
+ 180 0056 0F4B     		ldr	r3, .L20+8
+ 181 0058 D3ED017A 		vldr.32	s15, [r3, #4]
+ 275:Core/Src/main.c ****       BNO055_Get_Euler_Vec(&eulerVec);
+ 182              		.loc 1 275 22 view .LVU30
+ 183 005c F5EEC07A 		vcmpe.f32	s15, #0
+ 184 0060 F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+ 185 0064 F1D9     		bls	.L14
+ 186              	.L15:
+ 287:Core/Src/main.c **** }
+ 187              		.loc 1 287 3 is_stmt 1 view .LVU31
+ 188 0066 0A48     		ldr	r0, .L20+4
+ARM GAS  C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s 			page 10
+
+
+ 189 0068 FFF7FEFF 		bl	Stop_DCMotor
+ 190              	.LVL14:
+ 288:Core/Src/main.c **** 
+ 191              		.loc 1 288 1 is_stmt 0 view .LVU32
+ 192 006c 10BD     		pop	{r4, pc}
+ 193              	.LVL15:
+ 194              	.L17:
+ 282:Core/Src/main.c ****       HAL_Delay(10);
+ 195              		.loc 1 282 7 is_stmt 1 view .LVU33
+ 196 006e 0948     		ldr	r0, .L20+8
+ 197 0070 FFF7FEFF 		bl	BNO055_Get_Euler_Vec
+ 198              	.LVL16:
+ 283:Core/Src/main.c ****     }
+ 199              		.loc 1 283 7 view .LVU34
+ 200 0074 0A20     		movs	r0, #10
+ 201 0076 FFF7FEFF 		bl	HAL_Delay
+ 202              	.LVL17:
+ 203              	.L16:
+ 281:Core/Src/main.c ****       BNO055_Get_Euler_Vec(&eulerVec);
+ 204              		.loc 1 281 22 view .LVU35
+ 281:Core/Src/main.c ****       BNO055_Get_Euler_Vec(&eulerVec);
+ 205              		.loc 1 281 19 is_stmt 0 view .LVU36
+ 206 007a 064B     		ldr	r3, .L20+8
+ 207 007c D3ED017A 		vldr.32	s15, [r3, #4]
+ 281:Core/Src/main.c ****       BNO055_Get_Euler_Vec(&eulerVec);
+ 208              		.loc 1 281 22 view .LVU37
+ 209 0080 F5EEC07A 		vcmpe.f32	s15, #0
+ 210 0084 F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+ 211 0088 F1DA     		bge	.L17
+ 212 008a ECE7     		b	.L15
+ 213              	.L21:
+ 214              		.align	2
+ 215              	.L20:
+ 216 008c 00080048 		.word	1207961600
+ 217 0090 00000000 		.word	.LANCHOR1
+ 218 0094 00000000 		.word	.LANCHOR2
+ 219              		.cfi_endproc
+ 220              	.LFE136:
+ 222              		.section	.text.armDeployment,"ax",%progbits
+ 223              		.align	1
+ 224              		.global	armDeployment
+ 225              		.syntax unified
+ 226              		.thumb
+ 227              		.thumb_func
+ 229              	armDeployment:
+ 230              	.LFB137:
+ 290:Core/Src/main.c ****   armState = ARM_DEPLOYING;
+ 231              		.loc 1 290 25 is_stmt 1 view -0
+ 232              		.cfi_startproc
+ 233              		@ args = 0, pretend = 0, frame = 0
+ 234              		@ frame_needed = 0, uses_anonymous_args = 0
+ 235 0000 08B5     		push	{r3, lr}
+ 236              		.cfi_def_cfa_offset 8
+ 237              		.cfi_offset 3, -8
+ 238              		.cfi_offset 14, -4
+ 291:Core/Src/main.c ****   Drive_DCMotor(&armMotor, 70, COUNTER_CLOCKWISE);
+ 239              		.loc 1 291 3 view .LVU39
+ARM GAS  C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s 			page 11
+
+
+ 291:Core/Src/main.c ****   Drive_DCMotor(&armMotor, 70, COUNTER_CLOCKWISE);
+ 240              		.loc 1 291 12 is_stmt 0 view .LVU40
+ 241 0002 084B     		ldr	r3, .L25
+ 242 0004 0022     		movs	r2, #0
+ 243 0006 1A70     		strb	r2, [r3]
+ 292:Core/Src/main.c ****   while(armState == ARM_DEPLOYING);
+ 244              		.loc 1 292 3 is_stmt 1 view .LVU41
+ 245 0008 0122     		movs	r2, #1
+ 246 000a 4621     		movs	r1, #70
+ 247 000c 0648     		ldr	r0, .L25+4
+ 248 000e FFF7FEFF 		bl	Drive_DCMotor
+ 249              	.LVL18:
+ 293:Core/Src/main.c ****   Stop_DCMotor(&armMotor);
+ 250              		.loc 1 293 3 view .LVU42
+ 251              	.L23:
+ 293:Core/Src/main.c ****   Stop_DCMotor(&armMotor);
+ 252              		.loc 1 293 18 discriminator 1 view .LVU43
+ 253 0012 044B     		ldr	r3, .L25
+ 254 0014 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 255 0016 002B     		cmp	r3, #0
+ 256 0018 FBD0     		beq	.L23
+ 294:Core/Src/main.c **** }
+ 257              		.loc 1 294 3 view .LVU44
+ 258 001a 0348     		ldr	r0, .L25+4
+ 259 001c FFF7FEFF 		bl	Stop_DCMotor
+ 260              	.LVL19:
+ 295:Core/Src/main.c **** 
+ 261              		.loc 1 295 1 is_stmt 0 view .LVU45
+ 262 0020 08BD     		pop	{r3, pc}
+ 263              	.L26:
+ 264 0022 00BF     		.align	2
+ 265              	.L25:
+ 266 0024 00000000 		.word	.LANCHOR3
+ 267 0028 00000000 		.word	.LANCHOR4
+ 268              		.cfi_endproc
+ 269              	.LFE137:
+ 271              		.section	.text.armRetraction,"ax",%progbits
+ 272              		.align	1
+ 273              		.global	armRetraction
+ 274              		.syntax unified
+ 275              		.thumb
+ 276              		.thumb_func
+ 278              	armRetraction:
+ 279              	.LFB138:
+ 297:Core/Src/main.c ****   armState = ARM_RETRACTING;
+ 280              		.loc 1 297 25 is_stmt 1 view -0
+ 281              		.cfi_startproc
+ 282              		@ args = 0, pretend = 0, frame = 0
+ 283              		@ frame_needed = 0, uses_anonymous_args = 0
+ 284 0000 08B5     		push	{r3, lr}
+ 285              		.cfi_def_cfa_offset 8
+ 286              		.cfi_offset 3, -8
+ 287              		.cfi_offset 14, -4
+ 298:Core/Src/main.c ****   Drive_DCMotor(&armMotor, 70, CLOCKWISE);
+ 288              		.loc 1 298 3 view .LVU47
+ 298:Core/Src/main.c ****   Drive_DCMotor(&armMotor, 70, CLOCKWISE);
+ 289              		.loc 1 298 12 is_stmt 0 view .LVU48
+ARM GAS  C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s 			page 12
+
+
+ 290 0002 084B     		ldr	r3, .L30
+ 291 0004 0222     		movs	r2, #2
+ 292 0006 1A70     		strb	r2, [r3]
+ 299:Core/Src/main.c ****   while(armState == ARM_RETRACTING);
+ 293              		.loc 1 299 3 is_stmt 1 view .LVU49
+ 294 0008 0022     		movs	r2, #0
+ 295 000a 4621     		movs	r1, #70
+ 296 000c 0648     		ldr	r0, .L30+4
+ 297 000e FFF7FEFF 		bl	Drive_DCMotor
+ 298              	.LVL20:
+ 300:Core/Src/main.c ****   Stop_DCMotor(&armMotor);
+ 299              		.loc 1 300 3 view .LVU50
+ 300              	.L28:
+ 300:Core/Src/main.c ****   Stop_DCMotor(&armMotor);
+ 301              		.loc 1 300 18 discriminator 1 view .LVU51
+ 302 0012 044B     		ldr	r3, .L30
+ 303 0014 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 304 0016 022B     		cmp	r3, #2
+ 305 0018 FBD0     		beq	.L28
+ 301:Core/Src/main.c **** }
+ 306              		.loc 1 301 3 view .LVU52
+ 307 001a 0348     		ldr	r0, .L30+4
+ 308 001c FFF7FEFF 		bl	Stop_DCMotor
+ 309              	.LVL21:
+ 302:Core/Src/main.c **** 
+ 310              		.loc 1 302 1 is_stmt 0 view .LVU53
+ 311 0020 08BD     		pop	{r3, pc}
+ 312              	.L31:
+ 313 0022 00BF     		.align	2
+ 314              	.L30:
+ 315 0024 00000000 		.word	.LANCHOR3
+ 316 0028 00000000 		.word	.LANCHOR4
+ 317              		.cfi_endproc
+ 318              	.LFE138:
+ 320              		.section	.text.HAL_GPIO_EXTI_Callback,"ax",%progbits
+ 321              		.align	1
+ 322              		.global	HAL_GPIO_EXTI_Callback
+ 323              		.syntax unified
+ 324              		.thumb
+ 325              		.thumb_func
+ 327              	HAL_GPIO_EXTI_Callback:
+ 328              	.LVL22:
+ 329              	.LFB134:
+ 252:Core/Src/main.c ****   if(armState == ARM_DEPLOYING)
+ 330              		.loc 1 252 47 is_stmt 1 view -0
+ 331              		.cfi_startproc
+ 332              		@ args = 0, pretend = 0, frame = 0
+ 333              		@ frame_needed = 0, uses_anonymous_args = 0
+ 334              		@ link register save eliminated.
+ 253:Core/Src/main.c ****     armState = ARM_DONE_DEPLOYING;
+ 335              		.loc 1 253 3 view .LVU55
+ 253:Core/Src/main.c ****     armState = ARM_DONE_DEPLOYING;
+ 336              		.loc 1 253 15 is_stmt 0 view .LVU56
+ 337 0000 064B     		ldr	r3, .L36
+ 338 0002 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 253:Core/Src/main.c ****     armState = ARM_DONE_DEPLOYING;
+ 339              		.loc 1 253 5 view .LVU57
+ARM GAS  C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s 			page 13
+
+
+ 340 0004 1BB9     		cbnz	r3, .L33
+ 254:Core/Src/main.c ****   else if(armState == ARM_RETRACTING)
+ 341              		.loc 1 254 5 is_stmt 1 view .LVU58
+ 254:Core/Src/main.c ****   else if(armState == ARM_RETRACTING)
+ 342              		.loc 1 254 14 is_stmt 0 view .LVU59
+ 343 0006 054B     		ldr	r3, .L36
+ 344 0008 0122     		movs	r2, #1
+ 345 000a 1A70     		strb	r2, [r3]
+ 346 000c 7047     		bx	lr
+ 347              	.L33:
+ 255:Core/Src/main.c ****     armState = ARM_DONE_RETRACTING;
+ 348              		.loc 1 255 8 is_stmt 1 view .LVU60
+ 255:Core/Src/main.c ****     armState = ARM_DONE_RETRACTING;
+ 349              		.loc 1 255 10 is_stmt 0 view .LVU61
+ 350 000e 022B     		cmp	r3, #2
+ 351 0010 00D0     		beq	.L35
+ 352              	.L32:
+ 257:Core/Src/main.c **** 
+ 353              		.loc 1 257 1 view .LVU62
+ 354 0012 7047     		bx	lr
+ 355              	.L35:
+ 256:Core/Src/main.c **** }
+ 356              		.loc 1 256 5 is_stmt 1 view .LVU63
+ 256:Core/Src/main.c **** }
+ 357              		.loc 1 256 14 is_stmt 0 view .LVU64
+ 358 0014 014B     		ldr	r3, .L36
+ 359 0016 0322     		movs	r2, #3
+ 360 0018 1A70     		strb	r2, [r3]
+ 257:Core/Src/main.c **** 
+ 361              		.loc 1 257 1 view .LVU65
+ 362 001a FAE7     		b	.L32
+ 363              	.L37:
+ 364              		.align	2
+ 365              	.L36:
+ 366 001c 00000000 		.word	.LANCHOR3
+ 367              		.cfi_endproc
+ 368              	.LFE134:
+ 370              		.section	.text.Error_Handler,"ax",%progbits
+ 371              		.align	1
+ 372              		.global	Error_Handler
+ 373              		.syntax unified
+ 374              		.thumb
+ 375              		.thumb_func
+ 377              	Error_Handler:
+ 378              	.LFB140:
+ 308:Core/Src/main.c **** 
+ 309:Core/Src/main.c **** /* USER CODE END 4 */
+ 310:Core/Src/main.c **** 
+ 311:Core/Src/main.c **** /**
+ 312:Core/Src/main.c ****   * @brief  This function is executed in case of error occurrence.
+ 313:Core/Src/main.c ****   * @retval None
+ 314:Core/Src/main.c ****   */
+ 315:Core/Src/main.c **** void Error_Handler(void)
+ 316:Core/Src/main.c **** {
+ 379              		.loc 1 316 1 is_stmt 1 view -0
+ 380              		.cfi_startproc
+ 381              		@ Volatile: function does not return.
+ARM GAS  C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s 			page 14
+
+
+ 382              		@ args = 0, pretend = 0, frame = 0
+ 383              		@ frame_needed = 0, uses_anonymous_args = 0
+ 384              		@ link register save eliminated.
+ 317:Core/Src/main.c ****   /* USER CODE BEGIN Error_Handler_Debug */
+ 318:Core/Src/main.c ****   /* User can add his own implementation to report the HAL error return state */
+ 319:Core/Src/main.c ****   __disable_irq();
+ 385              		.loc 1 319 3 view .LVU67
+ 386              	.LBB5:
+ 387              	.LBI5:
+ 388              		.file 2 "Drivers/CMSIS/Include/cmsis_gcc.h"
+   1:Drivers/CMSIS/Include/cmsis_gcc.h **** /**************************************************************************//**
+   2:Drivers/CMSIS/Include/cmsis_gcc.h ****  * @file     cmsis_gcc.h
+   3:Drivers/CMSIS/Include/cmsis_gcc.h ****  * @brief    CMSIS compiler GCC header file
+   4:Drivers/CMSIS/Include/cmsis_gcc.h ****  * @version  V5.2.0
+   5:Drivers/CMSIS/Include/cmsis_gcc.h ****  * @date     08. May 2019
+   6:Drivers/CMSIS/Include/cmsis_gcc.h ****  ******************************************************************************/
+   7:Drivers/CMSIS/Include/cmsis_gcc.h **** /*
+   8:Drivers/CMSIS/Include/cmsis_gcc.h ****  * Copyright (c) 2009-2019 Arm Limited. All rights reserved.
+   9:Drivers/CMSIS/Include/cmsis_gcc.h ****  *
+  10:Drivers/CMSIS/Include/cmsis_gcc.h ****  * SPDX-License-Identifier: Apache-2.0
+  11:Drivers/CMSIS/Include/cmsis_gcc.h ****  *
+  12:Drivers/CMSIS/Include/cmsis_gcc.h ****  * Licensed under the Apache License, Version 2.0 (the License); you may
+  13:Drivers/CMSIS/Include/cmsis_gcc.h ****  * not use this file except in compliance with the License.
+  14:Drivers/CMSIS/Include/cmsis_gcc.h ****  * You may obtain a copy of the License at
+  15:Drivers/CMSIS/Include/cmsis_gcc.h ****  *
+  16:Drivers/CMSIS/Include/cmsis_gcc.h ****  * www.apache.org/licenses/LICENSE-2.0
+  17:Drivers/CMSIS/Include/cmsis_gcc.h ****  *
+  18:Drivers/CMSIS/Include/cmsis_gcc.h ****  * Unless required by applicable law or agreed to in writing, software
+  19:Drivers/CMSIS/Include/cmsis_gcc.h ****  * distributed under the License is distributed on an AS IS BASIS, WITHOUT
+  20:Drivers/CMSIS/Include/cmsis_gcc.h ****  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  21:Drivers/CMSIS/Include/cmsis_gcc.h ****  * See the License for the specific language governing permissions and
+  22:Drivers/CMSIS/Include/cmsis_gcc.h ****  * limitations under the License.
+  23:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
+  24:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+  25:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef __CMSIS_GCC_H
+  26:Drivers/CMSIS/Include/cmsis_gcc.h **** #define __CMSIS_GCC_H
+  27:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+  28:Drivers/CMSIS/Include/cmsis_gcc.h **** /* ignore some GCC warnings */
+  29:Drivers/CMSIS/Include/cmsis_gcc.h **** #pragma GCC diagnostic push
+  30:Drivers/CMSIS/Include/cmsis_gcc.h **** #pragma GCC diagnostic ignored "-Wsign-conversion"
+  31:Drivers/CMSIS/Include/cmsis_gcc.h **** #pragma GCC diagnostic ignored "-Wconversion"
+  32:Drivers/CMSIS/Include/cmsis_gcc.h **** #pragma GCC diagnostic ignored "-Wunused-parameter"
+  33:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+  34:Drivers/CMSIS/Include/cmsis_gcc.h **** /* Fallback for __has_builtin */
+  35:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef __has_builtin
+  36:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __has_builtin(x) (0)
+  37:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  38:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+  39:Drivers/CMSIS/Include/cmsis_gcc.h **** /* CMSIS compiler specific defines */
+  40:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __ASM
+  41:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __ASM                                  __asm
+  42:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  43:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __INLINE
+  44:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __INLINE                               inline
+  45:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  46:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __STATIC_INLINE
+  47:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __STATIC_INLINE                        static inline
+ARM GAS  C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s 			page 15
+
+
+  48:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  49:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __STATIC_FORCEINLINE                 
+  50:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __STATIC_FORCEINLINE                   __attribute__((always_inline)) static inline
+  51:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif                                           
+  52:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __NO_RETURN
+  53:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __NO_RETURN                            __attribute__((__noreturn__))
+  54:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  55:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __USED
+  56:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __USED                                 __attribute__((used))
+  57:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  58:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __WEAK
+  59:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __WEAK                                 __attribute__((weak))
+  60:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  61:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __PACKED
+  62:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __PACKED                               __attribute__((packed, aligned(1)))
+  63:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  64:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __PACKED_STRUCT
+  65:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __PACKED_STRUCT                        struct __attribute__((packed, aligned(1)))
+  66:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  67:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __PACKED_UNION
+  68:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __PACKED_UNION                         union __attribute__((packed, aligned(1)))
+  69:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  70:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT32        /* deprecated */
+  71:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+  72:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+  73:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+  74:Drivers/CMSIS/Include/cmsis_gcc.h ****   struct __attribute__((packed)) T_UINT32 { uint32_t v; };
+  75:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+  76:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT32(x)                  (((struct T_UINT32 *)(x))->v)
+  77:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  78:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT16_WRITE
+  79:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+  80:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+  81:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+  82:Drivers/CMSIS/Include/cmsis_gcc.h ****   __PACKED_STRUCT T_UINT16_WRITE { uint16_t v; };
+  83:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+  84:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT16_WRITE(addr, val)    (void)((((struct T_UINT16_WRITE *)(void *)(addr))-
+  85:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  86:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT16_READ
+  87:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+  88:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+  89:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+  90:Drivers/CMSIS/Include/cmsis_gcc.h ****   __PACKED_STRUCT T_UINT16_READ { uint16_t v; };
+  91:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+  92:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT16_READ(addr)          (((const struct T_UINT16_READ *)(const void *)(add
+  93:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  94:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT32_WRITE
+  95:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+  96:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+  97:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+  98:Drivers/CMSIS/Include/cmsis_gcc.h ****   __PACKED_STRUCT T_UINT32_WRITE { uint32_t v; };
+  99:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+ 100:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT32_WRITE(addr, val)    (void)((((struct T_UINT32_WRITE *)(void *)(addr))-
+ 101:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+ 102:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT32_READ
+ 103:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+ 104:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+ARM GAS  C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s 			page 16
+
+
+ 105:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+ 106:Drivers/CMSIS/Include/cmsis_gcc.h ****   __PACKED_STRUCT T_UINT32_READ { uint32_t v; };
+ 107:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+ 108:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT32_READ(addr)          (((const struct T_UINT32_READ *)(const void *)(add
+ 109:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+ 110:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __ALIGNED
+ 111:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __ALIGNED(x)                           __attribute__((aligned(x)))
+ 112:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+ 113:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __RESTRICT
+ 114:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __RESTRICT                             __restrict
+ 115:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+ 116:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __COMPILER_BARRIER
+ 117:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __COMPILER_BARRIER()                   __ASM volatile("":::"memory")
+ 118:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+ 119:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+ 120:Drivers/CMSIS/Include/cmsis_gcc.h **** /* #########################  Startup and Lowlevel Init  ######################## */
+ 121:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+ 122:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef __PROGRAM_START
+ 123:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+ 124:Drivers/CMSIS/Include/cmsis_gcc.h **** /**
+ 125:Drivers/CMSIS/Include/cmsis_gcc.h ****   \brief   Initializes data and bss sections
+ 126:Drivers/CMSIS/Include/cmsis_gcc.h ****   \details This default implementations initialized all data and additional bss
+ 127:Drivers/CMSIS/Include/cmsis_gcc.h ****            sections relying on .copy.table and .zero.table specified properly
+ 128:Drivers/CMSIS/Include/cmsis_gcc.h ****            in the used linker script.
+ 129:Drivers/CMSIS/Include/cmsis_gcc.h ****   
+ 130:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
+ 131:Drivers/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE __NO_RETURN void __cmsis_start(void)
+ 132:Drivers/CMSIS/Include/cmsis_gcc.h **** {
+ 133:Drivers/CMSIS/Include/cmsis_gcc.h ****   extern void _start(void) __NO_RETURN;
+ 134:Drivers/CMSIS/Include/cmsis_gcc.h ****   
+ 135:Drivers/CMSIS/Include/cmsis_gcc.h ****   typedef struct {
+ 136:Drivers/CMSIS/Include/cmsis_gcc.h ****     uint32_t const* src;
+ 137:Drivers/CMSIS/Include/cmsis_gcc.h ****     uint32_t* dest;
+ 138:Drivers/CMSIS/Include/cmsis_gcc.h ****     uint32_t  wlen;
+ 139:Drivers/CMSIS/Include/cmsis_gcc.h ****   } __copy_table_t;
+ 140:Drivers/CMSIS/Include/cmsis_gcc.h ****   
+ 141:Drivers/CMSIS/Include/cmsis_gcc.h ****   typedef struct {
+ 142:Drivers/CMSIS/Include/cmsis_gcc.h ****     uint32_t* dest;
+ 143:Drivers/CMSIS/Include/cmsis_gcc.h ****     uint32_t  wlen;
+ 144:Drivers/CMSIS/Include/cmsis_gcc.h ****   } __zero_table_t;
+ 145:Drivers/CMSIS/Include/cmsis_gcc.h ****   
+ 146:Drivers/CMSIS/Include/cmsis_gcc.h ****   extern const __copy_table_t __copy_table_start__;
+ 147:Drivers/CMSIS/Include/cmsis_gcc.h ****   extern const __copy_table_t __copy_table_end__;
+ 148:Drivers/CMSIS/Include/cmsis_gcc.h ****   extern const __zero_table_t __zero_table_start__;
+ 149:Drivers/CMSIS/Include/cmsis_gcc.h ****   extern const __zero_table_t __zero_table_end__;
+ 150:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+ 151:Drivers/CMSIS/Include/cmsis_gcc.h ****   for (__copy_table_t const* pTable = &__copy_table_start__; pTable < &__copy_table_end__; ++pTable
+ 152:Drivers/CMSIS/Include/cmsis_gcc.h ****     for(uint32_t i=0u; i<pTable->wlen; ++i) {
+ 153:Drivers/CMSIS/Include/cmsis_gcc.h ****       pTable->dest[i] = pTable->src[i];
+ 154:Drivers/CMSIS/Include/cmsis_gcc.h ****     }
+ 155:Drivers/CMSIS/Include/cmsis_gcc.h ****   }
+ 156:Drivers/CMSIS/Include/cmsis_gcc.h ****  
+ 157:Drivers/CMSIS/Include/cmsis_gcc.h ****   for (__zero_table_t const* pTable = &__zero_table_start__; pTable < &__zero_table_end__; ++pTable
+ 158:Drivers/CMSIS/Include/cmsis_gcc.h ****     for(uint32_t i=0u; i<pTable->wlen; ++i) {
+ 159:Drivers/CMSIS/Include/cmsis_gcc.h ****       pTable->dest[i] = 0u;
+ 160:Drivers/CMSIS/Include/cmsis_gcc.h ****     }
+ 161:Drivers/CMSIS/Include/cmsis_gcc.h ****   }
+ARM GAS  C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s 			page 17
+
+
+ 162:Drivers/CMSIS/Include/cmsis_gcc.h ****  
+ 163:Drivers/CMSIS/Include/cmsis_gcc.h ****   _start();
+ 164:Drivers/CMSIS/Include/cmsis_gcc.h **** }
+ 165:Drivers/CMSIS/Include/cmsis_gcc.h ****   
+ 166:Drivers/CMSIS/Include/cmsis_gcc.h **** #define __PROGRAM_START           __cmsis_start
+ 167:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+ 168:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+ 169:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef __INITIAL_SP
+ 170:Drivers/CMSIS/Include/cmsis_gcc.h **** #define __INITIAL_SP              __StackTop
+ 171:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+ 172:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+ 173:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef __STACK_LIMIT
+ 174:Drivers/CMSIS/Include/cmsis_gcc.h **** #define __STACK_LIMIT             __StackLimit
+ 175:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+ 176:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+ 177:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef __VECTOR_TABLE
+ 178:Drivers/CMSIS/Include/cmsis_gcc.h **** #define __VECTOR_TABLE            __Vectors
+ 179:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+ 180:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+ 181:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef __VECTOR_TABLE_ATTRIBUTE
+ 182:Drivers/CMSIS/Include/cmsis_gcc.h **** #define __VECTOR_TABLE_ATTRIBUTE  __attribute((used, section(".vectors")))
+ 183:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+ 184:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+ 185:Drivers/CMSIS/Include/cmsis_gcc.h **** /* ###########################  Core Function Access  ########################### */
+ 186:Drivers/CMSIS/Include/cmsis_gcc.h **** /** \ingroup  CMSIS_Core_FunctionInterface
+ 187:Drivers/CMSIS/Include/cmsis_gcc.h ****     \defgroup CMSIS_Core_RegAccFunctions CMSIS Core Register Access Functions
+ 188:Drivers/CMSIS/Include/cmsis_gcc.h ****   @{
+ 189:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
+ 190:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+ 191:Drivers/CMSIS/Include/cmsis_gcc.h **** /**
+ 192:Drivers/CMSIS/Include/cmsis_gcc.h ****   \brief   Enable IRQ Interrupts
+ 193:Drivers/CMSIS/Include/cmsis_gcc.h ****   \details Enables IRQ interrupts by clearing the I-bit in the CPSR.
+ 194:Drivers/CMSIS/Include/cmsis_gcc.h ****            Can only be executed in Privileged modes.
+ 195:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
+ 196:Drivers/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __enable_irq(void)
+ 197:Drivers/CMSIS/Include/cmsis_gcc.h **** {
+ 198:Drivers/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("cpsie i" : : : "memory");
+ 199:Drivers/CMSIS/Include/cmsis_gcc.h **** }
+ 200:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+ 201:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+ 202:Drivers/CMSIS/Include/cmsis_gcc.h **** /**
+ 203:Drivers/CMSIS/Include/cmsis_gcc.h ****   \brief   Disable IRQ Interrupts
+ 204:Drivers/CMSIS/Include/cmsis_gcc.h ****   \details Disables IRQ interrupts by setting the I-bit in the CPSR.
+ 205:Drivers/CMSIS/Include/cmsis_gcc.h ****            Can only be executed in Privileged modes.
+ 206:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
+ 207:Drivers/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __disable_irq(void)
+ 389              		.loc 2 207 27 view .LVU68
+ 390              	.LBB6:
+ 208:Drivers/CMSIS/Include/cmsis_gcc.h **** {
+ 209:Drivers/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("cpsid i" : : : "memory");
+ 391              		.loc 2 209 3 view .LVU69
+ 392              		.syntax unified
+ 393              	@ 209 "Drivers/CMSIS/Include/cmsis_gcc.h" 1
+ 394 0000 72B6     		cpsid i
+ 395              	@ 0 "" 2
+ 396              		.thumb
+ 397              		.syntax unified
+ARM GAS  C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s 			page 18
+
+
+ 398              	.L39:
+ 399              	.LBE6:
+ 400              	.LBE5:
+ 320:Core/Src/main.c ****   while (1)
+ 401              		.loc 1 320 3 discriminator 1 view .LVU70
+ 321:Core/Src/main.c ****   {
+ 322:Core/Src/main.c ****   }
+ 402              		.loc 1 322 3 discriminator 1 view .LVU71
+ 320:Core/Src/main.c ****   while (1)
+ 403              		.loc 1 320 9 discriminator 1 view .LVU72
+ 404 0002 FEE7     		b	.L39
+ 405              		.cfi_endproc
+ 406              	.LFE140:
+ 408              		.section	.text.SystemClock_Config,"ax",%progbits
+ 409              		.align	1
+ 410              		.global	SystemClock_Config
+ 411              		.syntax unified
+ 412              		.thumb
+ 413              		.thumb_func
+ 415              	SystemClock_Config:
+ 416              	.LFB133:
+ 210:Core/Src/main.c ****   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+ 417              		.loc 1 210 1 view -0
+ 418              		.cfi_startproc
+ 419              		@ args = 0, pretend = 0, frame = 80
+ 420              		@ frame_needed = 0, uses_anonymous_args = 0
+ 421 0000 00B5     		push	{lr}
+ 422              		.cfi_def_cfa_offset 4
+ 423              		.cfi_offset 14, -4
+ 424 0002 95B0     		sub	sp, sp, #84
+ 425              		.cfi_def_cfa_offset 88
+ 211:Core/Src/main.c ****   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+ 426              		.loc 1 211 3 view .LVU74
+ 211:Core/Src/main.c ****   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+ 427              		.loc 1 211 22 is_stmt 0 view .LVU75
+ 428 0004 3822     		movs	r2, #56
+ 429 0006 0021     		movs	r1, #0
+ 430 0008 06A8     		add	r0, sp, #24
+ 431 000a FFF7FEFF 		bl	memset
+ 432              	.LVL23:
+ 212:Core/Src/main.c **** 
+ 433              		.loc 1 212 3 is_stmt 1 view .LVU76
+ 212:Core/Src/main.c **** 
+ 434              		.loc 1 212 22 is_stmt 0 view .LVU77
+ 435 000e 0020     		movs	r0, #0
+ 436 0010 0190     		str	r0, [sp, #4]
+ 437 0012 0290     		str	r0, [sp, #8]
+ 438 0014 0390     		str	r0, [sp, #12]
+ 439 0016 0490     		str	r0, [sp, #16]
+ 440 0018 0590     		str	r0, [sp, #20]
+ 216:Core/Src/main.c **** 
+ 441              		.loc 1 216 3 is_stmt 1 view .LVU78
+ 442 001a FFF7FEFF 		bl	HAL_PWREx_ControlVoltageScaling
+ 443              	.LVL24:
+ 221:Core/Src/main.c ****   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+ 444              		.loc 1 221 3 view .LVU79
+ 221:Core/Src/main.c ****   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+ARM GAS  C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s 			page 19
+
+
+ 445              		.loc 1 221 36 is_stmt 0 view .LVU80
+ 446 001e 0223     		movs	r3, #2
+ 447 0020 0693     		str	r3, [sp, #24]
+ 222:Core/Src/main.c ****   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+ 448              		.loc 1 222 3 is_stmt 1 view .LVU81
+ 222:Core/Src/main.c ****   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+ 449              		.loc 1 222 30 is_stmt 0 view .LVU82
+ 450 0022 4FF48072 		mov	r2, #256
+ 451 0026 0992     		str	r2, [sp, #36]
+ 223:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+ 452              		.loc 1 223 3 is_stmt 1 view .LVU83
+ 223:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+ 453              		.loc 1 223 41 is_stmt 0 view .LVU84
+ 454 0028 4022     		movs	r2, #64
+ 455 002a 0A92     		str	r2, [sp, #40]
+ 224:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+ 456              		.loc 1 224 3 is_stmt 1 view .LVU85
+ 224:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+ 457              		.loc 1 224 34 is_stmt 0 view .LVU86
+ 458 002c 0D93     		str	r3, [sp, #52]
+ 225:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV4;
+ 459              		.loc 1 225 3 is_stmt 1 view .LVU87
+ 225:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV4;
+ 460              		.loc 1 225 35 is_stmt 0 view .LVU88
+ 461 002e 0E93     		str	r3, [sp, #56]
+ 226:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLN = 85;
+ 462              		.loc 1 226 3 is_stmt 1 view .LVU89
+ 226:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLN = 85;
+ 463              		.loc 1 226 30 is_stmt 0 view .LVU90
+ 464 0030 0422     		movs	r2, #4
+ 465 0032 0F92     		str	r2, [sp, #60]
+ 227:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+ 466              		.loc 1 227 3 is_stmt 1 view .LVU91
+ 227:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+ 467              		.loc 1 227 30 is_stmt 0 view .LVU92
+ 468 0034 5522     		movs	r2, #85
+ 469 0036 1092     		str	r2, [sp, #64]
+ 228:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
+ 470              		.loc 1 228 3 is_stmt 1 view .LVU93
+ 228:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
+ 471              		.loc 1 228 30 is_stmt 0 view .LVU94
+ 472 0038 1193     		str	r3, [sp, #68]
+ 229:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
+ 473              		.loc 1 229 3 is_stmt 1 view .LVU95
+ 229:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
+ 474              		.loc 1 229 30 is_stmt 0 view .LVU96
+ 475 003a 1293     		str	r3, [sp, #72]
+ 230:Core/Src/main.c ****   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+ 476              		.loc 1 230 3 is_stmt 1 view .LVU97
+ 230:Core/Src/main.c ****   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+ 477              		.loc 1 230 30 is_stmt 0 view .LVU98
+ 478 003c 1393     		str	r3, [sp, #76]
+ 231:Core/Src/main.c ****   {
+ 479              		.loc 1 231 3 is_stmt 1 view .LVU99
+ 231:Core/Src/main.c ****   {
+ 480              		.loc 1 231 7 is_stmt 0 view .LVU100
+ 481 003e 06A8     		add	r0, sp, #24
+ARM GAS  C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s 			page 20
+
+
+ 482 0040 FFF7FEFF 		bl	HAL_RCC_OscConfig
+ 483              	.LVL25:
+ 231:Core/Src/main.c ****   {
+ 484              		.loc 1 231 6 view .LVU101
+ 485 0044 80B9     		cbnz	r0, .L44
+ 238:Core/Src/main.c ****                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+ 486              		.loc 1 238 3 is_stmt 1 view .LVU102
+ 238:Core/Src/main.c ****                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+ 487              		.loc 1 238 31 is_stmt 0 view .LVU103
+ 488 0046 0F23     		movs	r3, #15
+ 489 0048 0193     		str	r3, [sp, #4]
+ 240:Core/Src/main.c ****   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+ 490              		.loc 1 240 3 is_stmt 1 view .LVU104
+ 240:Core/Src/main.c ****   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+ 491              		.loc 1 240 34 is_stmt 0 view .LVU105
+ 492 004a 0323     		movs	r3, #3
+ 493 004c 0293     		str	r3, [sp, #8]
+ 241:Core/Src/main.c ****   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+ 494              		.loc 1 241 3 is_stmt 1 view .LVU106
+ 241:Core/Src/main.c ****   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+ 495              		.loc 1 241 35 is_stmt 0 view .LVU107
+ 496 004e 0023     		movs	r3, #0
+ 497 0050 0393     		str	r3, [sp, #12]
+ 242:Core/Src/main.c ****   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+ 498              		.loc 1 242 3 is_stmt 1 view .LVU108
+ 242:Core/Src/main.c ****   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+ 499              		.loc 1 242 36 is_stmt 0 view .LVU109
+ 500 0052 0493     		str	r3, [sp, #16]
+ 243:Core/Src/main.c **** 
+ 501              		.loc 1 243 3 is_stmt 1 view .LVU110
+ 243:Core/Src/main.c **** 
+ 502              		.loc 1 243 36 is_stmt 0 view .LVU111
+ 503 0054 0593     		str	r3, [sp, #20]
+ 245:Core/Src/main.c ****   {
+ 504              		.loc 1 245 3 is_stmt 1 view .LVU112
+ 245:Core/Src/main.c ****   {
+ 505              		.loc 1 245 7 is_stmt 0 view .LVU113
+ 506 0056 0421     		movs	r1, #4
+ 507 0058 0DEB0100 		add	r0, sp, r1
+ 508 005c FFF7FEFF 		bl	HAL_RCC_ClockConfig
+ 509              	.LVL26:
+ 245:Core/Src/main.c ****   {
+ 510              		.loc 1 245 6 view .LVU114
+ 511 0060 20B9     		cbnz	r0, .L45
+ 249:Core/Src/main.c **** 
+ 512              		.loc 1 249 1 view .LVU115
+ 513 0062 15B0     		add	sp, sp, #84
+ 514              		.cfi_remember_state
+ 515              		.cfi_def_cfa_offset 4
+ 516              		@ sp needed
+ 517 0064 5DF804FB 		ldr	pc, [sp], #4
+ 518              	.L44:
+ 519              		.cfi_restore_state
+ 233:Core/Src/main.c ****   }
+ 520              		.loc 1 233 5 is_stmt 1 view .LVU116
+ 521 0068 FFF7FEFF 		bl	Error_Handler
+ 522              	.LVL27:
+ARM GAS  C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s 			page 21
+
+
+ 523              	.L45:
+ 247:Core/Src/main.c ****   }
+ 524              		.loc 1 247 5 view .LVU117
+ 525 006c FFF7FEFF 		bl	Error_Handler
+ 526              	.LVL28:
+ 527              		.cfi_endproc
+ 528              	.LFE133:
+ 530              		.section	.text.main,"ax",%progbits
+ 531              		.align	1
+ 532              		.global	main
+ 533              		.syntax unified
+ 534              		.thumb
+ 535              		.thumb_func
+ 537              	main:
+ 538              	.LFB132:
+  95:Core/Src/main.c ****   /* USER CODE BEGIN 1 */
+ 539              		.loc 1 95 1 view -0
+ 540              		.cfi_startproc
+ 541              		@ Volatile: function does not return.
+ 542              		@ args = 0, pretend = 0, frame = 24
+ 543              		@ frame_needed = 0, uses_anonymous_args = 0
+ 544 0000 00B5     		push	{lr}
+ 545              		.cfi_def_cfa_offset 4
+ 546              		.cfi_offset 14, -4
+ 547 0002 87B0     		sub	sp, sp, #28
+ 548              		.cfi_def_cfa_offset 32
+ 103:Core/Src/main.c **** 
+ 549              		.loc 1 103 3 view .LVU119
+ 550 0004 FFF7FEFF 		bl	HAL_Init
+ 551              	.LVL29:
+ 110:Core/Src/main.c **** 
+ 552              		.loc 1 110 3 view .LVU120
+ 553 0008 FFF7FEFF 		bl	SystemClock_Config
+ 554              	.LVL30:
+ 117:Core/Src/main.c ****   MX_I2C1_Init();
+ 555              		.loc 1 117 3 view .LVU121
+ 556 000c FFF7FEFF 		bl	MX_GPIO_Init
+ 557              	.LVL31:
+ 118:Core/Src/main.c ****   MX_LPUART1_UART_Init();
+ 558              		.loc 1 118 3 view .LVU122
+ 559 0010 FFF7FEFF 		bl	MX_I2C1_Init
+ 560              	.LVL32:
+ 119:Core/Src/main.c ****   MX_TIM2_Init();
+ 561              		.loc 1 119 3 view .LVU123
+ 562 0014 FFF7FEFF 		bl	MX_LPUART1_UART_Init
+ 563              	.LVL33:
+ 120:Core/Src/main.c ****   MX_TIM3_Init();
+ 564              		.loc 1 120 3 view .LVU124
+ 565 0018 FFF7FEFF 		bl	MX_TIM2_Init
+ 566              	.LVL34:
+ 121:Core/Src/main.c ****   /* USER CODE BEGIN 2 */
+ 567              		.loc 1 121 3 view .LVU125
+ 568 001c FFF7FEFF 		bl	MX_TIM3_Init
+ 569              	.LVL35:
+ 125:Core/Src/main.c ****   actConfig.Max_Pulse           = 2100;
+ 570              		.loc 1 125 3 view .LVU126
+ 125:Core/Src/main.c ****   actConfig.Max_Pulse           = 2100;
+ARM GAS  C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s 			page 22
+
+
+ 571              		.loc 1 125 33 is_stmt 0 view .LVU127
+ 572 0020 374B     		ldr	r3, .L57
+ 573 0022 4FF46172 		mov	r2, #900
+ 574 0026 1A80     		strh	r2, [r3]	@ movhi
+ 126:Core/Src/main.c ****   actConfig.Min_Length          = 0;
+ 575              		.loc 1 126 3 is_stmt 1 view .LVU128
+ 126:Core/Src/main.c ****   actConfig.Min_Length          = 0;
+ 576              		.loc 1 126 33 is_stmt 0 view .LVU129
+ 577 0028 40F63402 		movw	r2, #2100
+ 578 002c 5A80     		strh	r2, [r3, #2]	@ movhi
+ 127:Core/Src/main.c ****   actConfig.Max_Length          = 27;
+ 579              		.loc 1 127 3 is_stmt 1 view .LVU130
+ 127:Core/Src/main.c ****   actConfig.Max_Length          = 27;
+ 580              		.loc 1 127 33 is_stmt 0 view .LVU131
+ 581 002e 0022     		movs	r2, #0
+ 582 0030 1A71     		strb	r2, [r3, #4]
+ 128:Core/Src/main.c ****   actConfig.Desired_Min_Length  = 0;
+ 583              		.loc 1 128 3 is_stmt 1 view .LVU132
+ 128:Core/Src/main.c ****   actConfig.Desired_Min_Length  = 0;
+ 584              		.loc 1 128 33 is_stmt 0 view .LVU133
+ 585 0032 1B21     		movs	r1, #27
+ 586 0034 5971     		strb	r1, [r3, #5]
+ 129:Core/Src/main.c ****   actConfig.Desired_Max_Length  = 16;
+ 587              		.loc 1 129 3 is_stmt 1 view .LVU134
+ 129:Core/Src/main.c ****   actConfig.Desired_Max_Length  = 16;
+ 588              		.loc 1 129 33 is_stmt 0 view .LVU135
+ 589 0036 9A71     		strb	r2, [r3, #6]
+ 130:Core/Src/main.c **** 
+ 590              		.loc 1 130 3 is_stmt 1 view .LVU136
+ 130:Core/Src/main.c **** 
+ 591              		.loc 1 130 33 is_stmt 0 view .LVU137
+ 592 0038 1021     		movs	r1, #16
+ 593 003a D971     		strb	r1, [r3, #7]
+ 132:Core/Src/main.c ****   actInstance.Channel   = TIM_CHANNEL_1;
+ 594              		.loc 1 132 3 is_stmt 1 view .LVU138
+ 132:Core/Src/main.c ****   actInstance.Channel   = TIM_CHANNEL_1;
+ 595              		.loc 1 132 25 is_stmt 0 view .LVU139
+ 596 003c 3148     		ldr	r0, .L57+4
+ 597 003e 3249     		ldr	r1, .L57+8
+ 598 0040 0160     		str	r1, [r0]
+ 133:Core/Src/main.c ****   actInstance.config    = &actConfig;
+ 599              		.loc 1 133 3 is_stmt 1 view .LVU140
+ 133:Core/Src/main.c ****   actInstance.config    = &actConfig;
+ 600              		.loc 1 133 25 is_stmt 0 view .LVU141
+ 601 0042 0271     		strb	r2, [r0, #4]
+ 134:Core/Src/main.c **** 
+ 602              		.loc 1 134 3 is_stmt 1 view .LVU142
+ 134:Core/Src/main.c **** 
+ 603              		.loc 1 134 25 is_stmt 0 view .LVU143
+ 604 0044 8360     		str	r3, [r0, #8]
+ 136:Core/Src/main.c ****     HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+ 605              		.loc 1 136 3 is_stmt 1 view .LVU144
+ 136:Core/Src/main.c ****     HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+ 606              		.loc 1 136 6 is_stmt 0 view .LVU145
+ 607 0046 FFF7FEFF 		bl	Actuator_Init
+ 608              	.LVL36:
+ 136:Core/Src/main.c ****     HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+ARM GAS  C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s 			page 23
+
+
+ 609              		.loc 1 136 5 view .LVU146
+ 610 004a 30B1     		cbz	r0, .L47
+ 137:Core/Src/main.c ****     while(1);
+ 611              		.loc 1 137 5 is_stmt 1 view .LVU147
+ 612 004c 0122     		movs	r2, #1
+ 613 004e 2021     		movs	r1, #32
+ 614 0050 4FF09040 		mov	r0, #1207959552
+ 615 0054 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 616              	.LVL37:
+ 617              	.L48:
+ 138:Core/Src/main.c ****   }
+ 618              		.loc 1 138 5 discriminator 1 view .LVU148
+ 138:Core/Src/main.c ****   }
+ 619              		.loc 1 138 10 discriminator 1 view .LVU149
+ 620 0058 FEE7     		b	.L48
+ 621              	.L47:
+ 142:Core/Src/main.c ****   dcConfig.Max_Speed = 100;
+ 622              		.loc 1 142 3 view .LVU150
+ 142:Core/Src/main.c ****   dcConfig.Max_Speed = 100;
+ 623              		.loc 1 142 22 is_stmt 0 view .LVU151
+ 624 005a 2C4B     		ldr	r3, .L57+12
+ 625 005c 0022     		movs	r2, #0
+ 626 005e 1A70     		strb	r2, [r3]
+ 143:Core/Src/main.c **** 
+ 627              		.loc 1 143 3 is_stmt 1 view .LVU152
+ 143:Core/Src/main.c **** 
+ 628              		.loc 1 143 22 is_stmt 0 view .LVU153
+ 629 0060 6421     		movs	r1, #100
+ 630 0062 5970     		strb	r1, [r3, #1]
+ 145:Core/Src/main.c ****   bayMotor.IN1_Channel = TIM_CHANNEL_1;
+ 631              		.loc 1 145 3 is_stmt 1 view .LVU154
+ 145:Core/Src/main.c ****   bayMotor.IN1_Channel = TIM_CHANNEL_1;
+ 632              		.loc 1 145 24 is_stmt 0 view .LVU155
+ 633 0064 2A48     		ldr	r0, .L57+16
+ 634 0066 2B49     		ldr	r1, .L57+20
+ 635 0068 0160     		str	r1, [r0]
+ 146:Core/Src/main.c ****   bayMotor.IN2_Channel = TIM_CHANNEL_2;
+ 636              		.loc 1 146 3 is_stmt 1 view .LVU156
+ 146:Core/Src/main.c ****   bayMotor.IN2_Channel = TIM_CHANNEL_2;
+ 637              		.loc 1 146 24 is_stmt 0 view .LVU157
+ 638 006a 0271     		strb	r2, [r0, #4]
+ 147:Core/Src/main.c ****   bayMotor.config      = &dcConfig;
+ 639              		.loc 1 147 3 is_stmt 1 view .LVU158
+ 147:Core/Src/main.c ****   bayMotor.config      = &dcConfig;
+ 640              		.loc 1 147 24 is_stmt 0 view .LVU159
+ 641 006c 0422     		movs	r2, #4
+ 642 006e 4271     		strb	r2, [r0, #5]
+ 148:Core/Src/main.c **** 
+ 643              		.loc 1 148 3 is_stmt 1 view .LVU160
+ 148:Core/Src/main.c **** 
+ 644              		.loc 1 148 24 is_stmt 0 view .LVU161
+ 645 0070 C360     		str	r3, [r0, #12]
+ 150:Core/Src/main.c ****     HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+ 646              		.loc 1 150 3 is_stmt 1 view .LVU162
+ 150:Core/Src/main.c ****     HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+ 647              		.loc 1 150 6 is_stmt 0 view .LVU163
+ 648 0072 FFF7FEFF 		bl	DCMotor_Init
+ARM GAS  C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s 			page 24
+
+
+ 649              	.LVL38:
+ 150:Core/Src/main.c ****     HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+ 650              		.loc 1 150 5 view .LVU164
+ 651 0076 30B1     		cbz	r0, .L49
+ 151:Core/Src/main.c ****     while(1);
+ 652              		.loc 1 151 5 is_stmt 1 view .LVU165
+ 653 0078 0122     		movs	r2, #1
+ 654 007a 2021     		movs	r1, #32
+ 655 007c 4FF09040 		mov	r0, #1207959552
+ 656 0080 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 657              	.LVL39:
+ 658              	.L50:
+ 152:Core/Src/main.c ****   }
+ 659              		.loc 1 152 5 discriminator 2 view .LVU166
+ 152:Core/Src/main.c ****   }
+ 660              		.loc 1 152 10 discriminator 2 view .LVU167
+ 661 0084 FEE7     		b	.L50
+ 662              	.L49:
+ 157:Core/Src/main.c ****   armMotor.IN1_Channel = TIM_CHANNEL_3;
+ 663              		.loc 1 157 3 view .LVU168
+ 157:Core/Src/main.c ****   armMotor.IN1_Channel = TIM_CHANNEL_3;
+ 664              		.loc 1 157 24 is_stmt 0 view .LVU169
+ 665 0086 2448     		ldr	r0, .L57+24
+ 666 0088 224B     		ldr	r3, .L57+20
+ 667 008a 0360     		str	r3, [r0]
+ 158:Core/Src/main.c ****   armMotor.IN2_Channel = TIM_CHANNEL_4;
+ 668              		.loc 1 158 3 is_stmt 1 view .LVU170
+ 158:Core/Src/main.c ****   armMotor.IN2_Channel = TIM_CHANNEL_4;
+ 669              		.loc 1 158 24 is_stmt 0 view .LVU171
+ 670 008c 0823     		movs	r3, #8
+ 671 008e 0371     		strb	r3, [r0, #4]
+ 159:Core/Src/main.c ****   armMotor.config      = &dcConfig;
+ 672              		.loc 1 159 3 is_stmt 1 view .LVU172
+ 159:Core/Src/main.c ****   armMotor.config      = &dcConfig;
+ 673              		.loc 1 159 24 is_stmt 0 view .LVU173
+ 674 0090 0C23     		movs	r3, #12
+ 675 0092 4371     		strb	r3, [r0, #5]
+ 160:Core/Src/main.c **** 
+ 676              		.loc 1 160 3 is_stmt 1 view .LVU174
+ 160:Core/Src/main.c **** 
+ 677              		.loc 1 160 24 is_stmt 0 view .LVU175
+ 678 0094 1D4B     		ldr	r3, .L57+12
+ 679 0096 C360     		str	r3, [r0, #12]
+ 162:Core/Src/main.c ****     HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+ 680              		.loc 1 162 3 is_stmt 1 view .LVU176
+ 162:Core/Src/main.c ****     HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+ 681              		.loc 1 162 6 is_stmt 0 view .LVU177
+ 682 0098 FFF7FEFF 		bl	DCMotor_Init
+ 683              	.LVL40:
+ 162:Core/Src/main.c ****     HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+ 684              		.loc 1 162 5 view .LVU178
+ 685 009c 30B1     		cbz	r0, .L51
+ 163:Core/Src/main.c ****     while(1);
+ 686              		.loc 1 163 5 is_stmt 1 view .LVU179
+ 687 009e 0122     		movs	r2, #1
+ 688 00a0 2021     		movs	r1, #32
+ 689 00a2 4FF09040 		mov	r0, #1207959552
+ARM GAS  C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s 			page 25
+
+
+ 690 00a6 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 691              	.LVL41:
+ 692              	.L52:
+ 164:Core/Src/main.c ****   }
+ 693              		.loc 1 164 5 discriminator 3 view .LVU180
+ 164:Core/Src/main.c ****   }
+ 694              		.loc 1 164 10 discriminator 3 view .LVU181
+ 695 00aa FEE7     		b	.L52
+ 696              	.L51:
+ 170:Core/Src/main.c ****   BNO055_I2C_Mount(&hi2c1);
+ 697              		.loc 1 170 3 view .LVU182
+ 698 00ac 4FF42F70 		mov	r0, #700
+ 699 00b0 FFF7FEFF 		bl	HAL_Delay
+ 700              	.LVL42:
+ 171:Core/Src/main.c ****   if(BNO055_Init() != BNO055_SUCCESS){
+ 701              		.loc 1 171 3 view .LVU183
+ 702 00b4 1948     		ldr	r0, .L57+28
+ 703 00b6 FFF7FEFF 		bl	BNO055_I2C_Mount
+ 704              	.LVL43:
+ 172:Core/Src/main.c ****     HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+ 705              		.loc 1 172 3 view .LVU184
+ 172:Core/Src/main.c ****     HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+ 706              		.loc 1 172 6 is_stmt 0 view .LVU185
+ 707 00ba FFF7FEFF 		bl	BNO055_Init
+ 708              	.LVL44:
+ 172:Core/Src/main.c ****     HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+ 709              		.loc 1 172 5 view .LVU186
+ 710 00be 30B1     		cbz	r0, .L53
+ 173:Core/Src/main.c ****     while(1);
+ 711              		.loc 1 173 5 is_stmt 1 view .LVU187
+ 712 00c0 0122     		movs	r2, #1
+ 713 00c2 2021     		movs	r1, #32
+ 714 00c4 4FF09040 		mov	r0, #1207959552
+ 715 00c8 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 716              	.LVL45:
+ 717              	.L54:
+ 174:Core/Src/main.c ****   }
+ 718              		.loc 1 174 5 discriminator 4 view .LVU188
+ 174:Core/Src/main.c ****   }
+ 719              		.loc 1 174 10 discriminator 4 view .LVU189
+ 720 00cc FEE7     		b	.L54
+ 721              	.L53:
+ 176:Core/Src/main.c **** 
+ 722              		.loc 1 176 3 view .LVU190
+ 723 00ce 0C20     		movs	r0, #12
+ 724 00d0 FFF7FEFF 		bl	BNO055_Set_OP_Mode
+ 725              	.LVL46:
+ 178:Core/Src/main.c **** 
+ 726              		.loc 1 178 3 view .LVU191
+ 180:Core/Src/main.c ****   task[1].taskFunc = bayOrientation;
+ 727              		.loc 1 180 3 view .LVU192
+ 180:Core/Src/main.c ****   task[1].taskFunc = bayOrientation;
+ 728              		.loc 1 180 20 is_stmt 0 view .LVU193
+ 729 00d4 124B     		ldr	r3, .L57+32
+ 730 00d6 0193     		str	r3, [sp, #4]
+ 181:Core/Src/main.c ****   task[2].taskFunc = armDeployment;
+ 731              		.loc 1 181 3 is_stmt 1 view .LVU194
+ARM GAS  C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s 			page 26
+
+
+ 181:Core/Src/main.c ****   task[2].taskFunc = armDeployment;
+ 732              		.loc 1 181 20 is_stmt 0 view .LVU195
+ 733 00d8 124B     		ldr	r3, .L57+36
+ 734 00da 0293     		str	r3, [sp, #8]
+ 182:Core/Src/main.c ****   task[3].taskFunc = armRetraction;
+ 735              		.loc 1 182 3 is_stmt 1 view .LVU196
+ 182:Core/Src/main.c ****   task[3].taskFunc = armRetraction;
+ 736              		.loc 1 182 20 is_stmt 0 view .LVU197
+ 737 00dc 124B     		ldr	r3, .L57+40
+ 738 00de 0393     		str	r3, [sp, #12]
+ 183:Core/Src/main.c ****   task[4].taskFunc = retractDirtbrake;
+ 739              		.loc 1 183 3 is_stmt 1 view .LVU198
+ 183:Core/Src/main.c ****   task[4].taskFunc = retractDirtbrake;
+ 740              		.loc 1 183 20 is_stmt 0 view .LVU199
+ 741 00e0 124B     		ldr	r3, .L57+44
+ 742 00e2 0493     		str	r3, [sp, #16]
+ 184:Core/Src/main.c **** 
+ 743              		.loc 1 184 3 is_stmt 1 view .LVU200
+ 184:Core/Src/main.c **** 
+ 744              		.loc 1 184 20 is_stmt 0 view .LVU201
+ 745 00e4 124B     		ldr	r3, .L57+48
+ 746 00e6 0593     		str	r3, [sp, #20]
+ 747              	.L55:
+ 190:Core/Src/main.c ****   {
+ 748              		.loc 1 190 3 is_stmt 1 discriminator 1 view .LVU202
+ 193:Core/Src/main.c ****     task[1].taskFunc();
+ 749              		.loc 1 193 5 discriminator 1 view .LVU203
+ 750 00e8 FFF7FEFF 		bl	deployDirtbrake
+ 751              	.LVL47:
+ 194:Core/Src/main.c ****     task[2].taskFunc();
+ 752              		.loc 1 194 5 discriminator 1 view .LVU204
+ 753 00ec FFF7FEFF 		bl	bayOrientation
+ 754              	.LVL48:
+ 195:Core/Src/main.c ****     task[3].taskFunc();
+ 755              		.loc 1 195 5 discriminator 1 view .LVU205
+ 756 00f0 FFF7FEFF 		bl	armDeployment
+ 757              	.LVL49:
+ 196:Core/Src/main.c ****     task[4].taskFunc();
+ 758              		.loc 1 196 5 discriminator 1 view .LVU206
+ 759 00f4 FFF7FEFF 		bl	armRetraction
+ 760              	.LVL50:
+ 197:Core/Src/main.c ****     /* USER CODE END WHILE */
+ 761              		.loc 1 197 5 discriminator 1 view .LVU207
+ 762 00f8 FFF7FEFF 		bl	retractDirtbrake
+ 763              	.LVL51:
+ 190:Core/Src/main.c ****   {
+ 764              		.loc 1 190 9 discriminator 1 view .LVU208
+ 765 00fc F4E7     		b	.L55
+ 766              	.L58:
+ 767 00fe 00BF     		.align	2
+ 768              	.L57:
+ 769 0100 00000000 		.word	.LANCHOR5
+ 770 0104 00000000 		.word	.LANCHOR0
+ 771 0108 00000000 		.word	htim3
+ 772 010c 00000000 		.word	.LANCHOR6
+ 773 0110 00000000 		.word	.LANCHOR1
+ 774 0114 00000000 		.word	htim2
+ARM GAS  C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s 			page 27
+
+
+ 775 0118 00000000 		.word	.LANCHOR4
+ 776 011c 00000000 		.word	hi2c1
+ 777 0120 00000000 		.word	deployDirtbrake
+ 778 0124 00000000 		.word	bayOrientation
+ 779 0128 00000000 		.word	armDeployment
+ 780 012c 00000000 		.word	armRetraction
+ 781 0130 00000000 		.word	retractDirtbrake
+ 782              		.cfi_endproc
+ 783              	.LFE132:
+ 785              		.global	armState
+ 786              		.global	actInstance
+ 787              		.global	actConfig
+ 788              		.global	armMotor
+ 789              		.global	bayMotor
+ 790              		.global	dcConfig
+ 791              		.global	axisConfig
+ 792              		.global	eulerVec
+ 793              		.section	.bss.actConfig,"aw",%nobits
+ 794              		.align	2
+ 795              		.set	.LANCHOR5,. + 0
+ 798              	actConfig:
+ 799 0000 00000000 		.space	8
+ 799      00000000 
+ 800              		.section	.bss.actInstance,"aw",%nobits
+ 801              		.align	2
+ 802              		.set	.LANCHOR0,. + 0
+ 805              	actInstance:
+ 806 0000 00000000 		.space	16
+ 806      00000000 
+ 806      00000000 
+ 806      00000000 
+ 807              		.section	.bss.armMotor,"aw",%nobits
+ 808              		.align	2
+ 809              		.set	.LANCHOR4,. + 0
+ 812              	armMotor:
+ 813 0000 00000000 		.space	16
+ 813      00000000 
+ 813      00000000 
+ 813      00000000 
+ 814              		.section	.bss.armState,"aw",%nobits
+ 815              		.set	.LANCHOR3,. + 0
+ 818              	armState:
+ 819 0000 00       		.space	1
+ 820              		.section	.bss.axisConfig,"aw",%nobits
+ 821              		.align	2
+ 824              	axisConfig:
+ 825 0000 000000   		.space	3
+ 826              		.section	.bss.bayMotor,"aw",%nobits
+ 827              		.align	2
+ 828              		.set	.LANCHOR1,. + 0
+ 831              	bayMotor:
+ 832 0000 00000000 		.space	16
+ 832      00000000 
+ 832      00000000 
+ 832      00000000 
+ 833              		.section	.bss.dcConfig,"aw",%nobits
+ 834              		.align	2
+ARM GAS  C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s 			page 28
+
+
+ 835              		.set	.LANCHOR6,. + 0
+ 838              	dcConfig:
+ 839 0000 0000     		.space	2
+ 840              		.section	.bss.eulerVec,"aw",%nobits
+ 841              		.align	2
+ 842              		.set	.LANCHOR2,. + 0
+ 845              	eulerVec:
+ 846 0000 00000000 		.space	12
+ 846      00000000 
+ 846      00000000 
+ 847              		.text
+ 848              	.Letext0:
+ 849              		.file 3 "c:\\users\\jacki\\appdata\\roaming\\code\\user\\globalstorage\\bmd.stm32-for-vscode\\@xpa
+ 850              		.file 4 "c:\\users\\jacki\\appdata\\roaming\\code\\user\\globalstorage\\bmd.stm32-for-vscode\\@xpa
+ 851              		.file 5 "Drivers/CMSIS/Device/ST/STM32G4xx/Include/stm32g474xx.h"
+ 852              		.file 6 "Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_def.h"
+ 853              		.file 7 "Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_rcc.h"
+ 854              		.file 8 "Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_gpio.h"
+ 855              		.file 9 "Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_dma.h"
+ 856              		.file 10 "Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_i2c.h"
+ 857              		.file 11 "Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_tim.h"
+ 858              		.file 12 "Core/Inc/i2c.h"
+ 859              		.file 13 "Core/Inc/tim.h"
+ 860              		.file 14 "Core/Inc/BNO055.h"
+ 861              		.file 15 "Core/Inc/motor.h"
+ 862              		.file 16 "Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_pwr_ex.h"
+ 863              		.file 17 "Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h"
+ 864              		.file 18 "Core/Inc/usart.h"
+ 865              		.file 19 "Core/Inc/gpio.h"
+ 866              		.file 20 "<built-in>"
+ARM GAS  C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s 			page 29
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 main.c
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:20     .text.deployDirtbrake:0000000000000000 $t
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:26     .text.deployDirtbrake:0000000000000000 deployDirtbrake
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:57     .text.deployDirtbrake:0000000000000020 $d
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:63     .text.retractDirtbrake:0000000000000000 $t
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:69     .text.retractDirtbrake:0000000000000000 retractDirtbrake
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:93     .text.retractDirtbrake:0000000000000014 $d
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:98     .text.bayOrientation:0000000000000000 $t
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:104    .text.bayOrientation:0000000000000000 bayOrientation
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:216    .text.bayOrientation:000000000000008c $d
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:223    .text.armDeployment:0000000000000000 $t
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:229    .text.armDeployment:0000000000000000 armDeployment
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:266    .text.armDeployment:0000000000000024 $d
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:272    .text.armRetraction:0000000000000000 $t
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:278    .text.armRetraction:0000000000000000 armRetraction
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:315    .text.armRetraction:0000000000000024 $d
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:321    .text.HAL_GPIO_EXTI_Callback:0000000000000000 $t
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:327    .text.HAL_GPIO_EXTI_Callback:0000000000000000 HAL_GPIO_EXTI_Callback
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:366    .text.HAL_GPIO_EXTI_Callback:000000000000001c $d
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:371    .text.Error_Handler:0000000000000000 $t
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:377    .text.Error_Handler:0000000000000000 Error_Handler
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:409    .text.SystemClock_Config:0000000000000000 $t
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:415    .text.SystemClock_Config:0000000000000000 SystemClock_Config
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:531    .text.main:0000000000000000 $t
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:537    .text.main:0000000000000000 main
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:769    .text.main:0000000000000100 $d
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:818    .bss.armState:0000000000000000 armState
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:805    .bss.actInstance:0000000000000000 actInstance
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:798    .bss.actConfig:0000000000000000 actConfig
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:812    .bss.armMotor:0000000000000000 armMotor
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:831    .bss.bayMotor:0000000000000000 bayMotor
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:838    .bss.dcConfig:0000000000000000 dcConfig
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:824    .bss.axisConfig:0000000000000000 axisConfig
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:845    .bss.eulerVec:0000000000000000 eulerVec
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:794    .bss.actConfig:0000000000000000 $d
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:801    .bss.actInstance:0000000000000000 $d
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:808    .bss.armMotor:0000000000000000 $d
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:819    .bss.armState:0000000000000000 $d
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:821    .bss.axisConfig:0000000000000000 $d
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:827    .bss.bayMotor:0000000000000000 $d
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:834    .bss.dcConfig:0000000000000000 $d
+C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s:841    .bss.eulerVec:0000000000000000 $d
+
+UNDEFINED SYMBOLS
+HAL_GPIO_WritePin
+Drive_Actuator
+HAL_Delay
+Drive_DCMotor
+BNO055_Get_Euler_Vec
+Stop_DCMotor
+memset
+HAL_PWREx_ControlVoltageScaling
+HAL_RCC_OscConfig
+HAL_RCC_ClockConfig
+HAL_Init
+MX_GPIO_Init
+ARM GAS  C:\Users\jacki\AppData\Local\Temp\ccSfsRrQ.s 			page 30
+
+
+MX_I2C1_Init
+MX_LPUART1_UART_Init
+MX_TIM2_Init
+MX_TIM3_Init
+Actuator_Init
+DCMotor_Init
+BNO055_I2C_Mount
+BNO055_Init
+BNO055_Set_OP_Mode
+htim3
+htim2
+hi2c1
